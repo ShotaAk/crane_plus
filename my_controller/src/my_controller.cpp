@@ -18,6 +18,7 @@
 
 #include "my_controller/my_controller.hpp"
 #include "hardware_interface/loaned_command_interface.hpp"
+#include "hardware_interface/types/hardware_interface_type_values.hpp"
 
 
 namespace my_controller
@@ -60,8 +61,13 @@ CallbackReturn MyController::on_configure(
 controller_interface::InterfaceConfiguration
 MyController::command_interface_configuration() const
 {
-  controller_interface::InterfaceConfiguration command_interfaces_config;
-  return command_interfaces_config;
+  controller_interface::InterfaceConfiguration conf;
+  conf.type = controller_interface::interface_configuration_type::INDIVIDUAL;
+  conf.names.reserve(joint_names_.size());
+  for (const auto & joint_name  : joint_names_) {
+    conf.names.push_back(joint_name + "/" + hardware_interface::HW_IF_POSITION);
+  }
+  return conf;
 }
 
 controller_interface::InterfaceConfiguration
