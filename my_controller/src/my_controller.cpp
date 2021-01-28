@@ -145,6 +145,10 @@ CallbackReturn MyController::on_activate(
 CallbackReturn MyController::on_deactivate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
+  joint_position_command_interface_.clear();
+  joint_position_state_interface_.clear();
+  joint_load_state_interface_.clear();
+  release_interfaces();
   return CallbackReturn::SUCCESS;
 }
 
