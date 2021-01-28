@@ -13,6 +13,7 @@
 // limitations under the License.
 
 
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -154,6 +155,17 @@ CallbackReturn MyController::on_deactivate(
 
 controller_interface::return_type MyController::update()
 {
+  // current state update
+  const auto joint_num = joint_names_.size();
+  for (auto index = 0ul; index < joint_num; ++index) {
+    auto current_position = joint_position_state_interface_[index].get().get_value();
+    auto current_load = joint_load_state_interface_[index].get().get_value();
+    double target_position = current_position * 0.8;
+    if(std::fabs(current_load) > 25){
+      target_position = current_position;
+    }
+    joint_position_command_interface_[index].get().set_value(target_position);
+  }
   return controller_interface::return_type::SUCCESS;
 }
 
