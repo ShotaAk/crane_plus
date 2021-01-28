@@ -32,6 +32,15 @@ MyController::MyController()
 controller_interface::return_type
 MyController::init(const std::string & controller_name)
 {
+  // initialize lifecycle node
+  auto ret = ControllerInterface::init(controller_name);
+  if (ret != controller_interface::return_type::SUCCESS) {
+    return ret;
+  }
+
+  // with the lifecycle node being initialized, we can declare parameters
+  node_->declare_parameter<std::vector<std::string>>("joints", joint_names_);
+
   return controller_interface::return_type::SUCCESS;
 }
 
