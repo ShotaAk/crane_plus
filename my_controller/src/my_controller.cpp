@@ -47,6 +47,13 @@ MyController::init(const std::string & controller_name)
 CallbackReturn MyController::on_configure(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
+  joint_names_ = node_->get_parameter("joints").as_string_array();
+  if (joint_names_.empty()) {
+    RCLCPP_ERROR(get_node()->get_logger(), "'joints' parameter was empty");
+    return CallbackReturn::ERROR;
+  }
+
+  RCLCPP_INFO_STREAM(get_node()->get_logger(), "configure successful");
   return CallbackReturn::SUCCESS;
 }
 
