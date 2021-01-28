@@ -16,6 +16,9 @@
 #ifndef MY_CONTROLLER__MY_CONTROLLER_HPP_
 #define MY_CONTROLLER__MY_CONTROLLER_HPP_
 
+#include <string>
+#include <vector>
+
 #include "controller_interface/controller_interface.hpp"
 #include "my_controller/visibility_control.h"
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
@@ -54,6 +57,7 @@ public:
   controller_interface::return_type update() override;
 
 protected:
+  std::vector<std::string> joint_names_;
 };
 
 }  // namespace my_controller

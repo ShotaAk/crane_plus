@@ -12,15 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
+#include <string>
+#include <vector>
+
 #include "my_controller/my_controller.hpp"
 #include "hardware_interface/loaned_command_interface.hpp"
+
 
 namespace my_controller
 {
 using hardware_interface::LoanedCommandInterface;
 
 MyController::MyController()
-: controller_interface::ControllerInterface()
+: controller_interface::ControllerInterface(),
+  joint_names_({})
 {}
 
 controller_interface::return_type
