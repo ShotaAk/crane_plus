@@ -73,8 +73,14 @@ MyController::command_interface_configuration() const
 controller_interface::InterfaceConfiguration
 MyController::state_interface_configuration() const
 {
-  return controller_interface::InterfaceConfiguration{
-    controller_interface::interface_configuration_type::NONE};
+  controller_interface::InterfaceConfiguration conf;
+  conf.type = controller_interface::interface_configuration_type::INDIVIDUAL;
+  conf.names.reserve(2 * joint_names_.size());
+  for (const auto & joint_name  : joint_names_) {
+    conf.names.push_back(joint_name + "/" + hardware_interface::HW_IF_POSITION);
+    conf.names.push_back(joint_name + "/" + "load");
+  }
+  return conf;
 }
 
 template<typename T>
