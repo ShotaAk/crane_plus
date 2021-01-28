@@ -17,7 +17,6 @@
 #include <vector>
 
 #include "my_controller/my_controller.hpp"
-#include "hardware_interface/loaned_command_interface.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 
 
@@ -109,6 +108,37 @@ bool get_ordered_interfaces(
 CallbackReturn MyController::on_activate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
+  if (!get_ordered_interfaces(
+      command_interfaces_, joint_names_, hardware_interface::HW_IF_POSITION,
+      joint_position_command_interface_))
+  {
+    RCLCPP_ERROR(
+      node_->get_logger(),
+      "Expected %u position command interfaces, got %u",
+      joint_names_.size(), joint_position_command_interface_.size());
+    return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
+  }
+  if (!get_ordered_interfaces(
+      state_interfaces_, joint_names_, hardware_interface::HW_IF_POSITION,
+      joint_position_state_interface_))
+  {
+    RCLCPP_ERROR(
+      node_->get_logger(),
+      "Expected %u position state interfaces, got %u",
+      joint_names_.size(), joint_position_state_interface_.size());
+    return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
+  }
+  if (!get_ordered_interfaces(
+      state_interfaces_, joint_names_, "load",
+      joint_load_state_interface_))
+  {
+    RCLCPP_ERROR(
+      node_->get_logger(),
+      "Expected %u load state interfaces, got %u",
+      joint_names_.size(), joint_load_state_interface_.size());
+    return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
+  }
+
   return CallbackReturn::SUCCESS;
 }
 

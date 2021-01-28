@@ -20,6 +20,8 @@
 #include <vector>
 
 #include "controller_interface/controller_interface.hpp"
+#include "hardware_interface/loaned_command_interface.hpp"
+#include "hardware_interface/loaned_state_interface.hpp"
 #include "my_controller/visibility_control.h"
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 
@@ -58,6 +60,15 @@ public:
 
 protected:
   std::vector<std::string> joint_names_;
+
+  // For convenience, we have ordered the interfaces so i-th position matches i-th index
+  // in joint_names_
+  std::vector<std::reference_wrapper<hardware_interface::LoanedCommandInterface>>
+  joint_position_command_interface_;
+  std::vector<std::reference_wrapper<hardware_interface::LoanedStateInterface>>
+  joint_position_state_interface_;
+  std::vector<std::reference_wrapper<hardware_interface::LoanedStateInterface>>
+  joint_load_state_interface_;
 };
 
 }  // namespace my_controller
