@@ -83,11 +83,26 @@ MyController::state_interface_configuration() const
   return conf;
 }
 
+// Fill ordered_interfaces with references to the matching interfaces
+// in the same order as in joint_names
 template<typename T>
 bool get_ordered_interfaces(
   std::vector<T> & unordered_interfaces, const std::vector<std::string> & joint_names,
   const std::string & interface_type, std::vector<std::reference_wrapper<T>> & ordered_interfaces)
 {
+  // command_interfaces or state_interfacesから特定のinterfaceを抽出する
+  // interfaces_[joint1(pos), joint1(vel), joint2(pos), joint2(vel), ...]
+  // -> position_interfaces[joint1(pos), joint2(pos), ...]
+  for (const auto & joint_name : joint_names) {
+    for (auto & command_interface : unordered_interfaces) {
+      if ((command_interface.get_name() == joint_name) &&
+        (command_interface.get_interface_name() == interface_type))
+      {
+        ordered_interfaces.push_back(std::ref(command_interface));
+      }
+    }
+  }
+
   return joint_names.size() == ordered_interfaces.size();
 }
 
