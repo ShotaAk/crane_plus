@@ -211,12 +211,12 @@ return_type CranePlusHardware::read()
   //   }
   // }
 
-  // std::vector<double> joint_loads;
-  // if (driver_->read_present_joint_loads(&joint_loads)) {
-  //   for (uint i = 0; i < hw_load_states_.size(); ++i) {
-  //     hw_load_states_[i] = joint_loads[i];
-  //   }
-  // }
+  std::vector<double> joint_loads;
+  if (driver_->read_present_joint_loads(&joint_loads)) {
+    for (uint i = 0; i < hw_load_states_.size(); ++i) {
+      hw_load_states_[i] = joint_loads[i];
+    }
+  }
 
   // std::vector<double> joint_voltages;
   // if (driver_->read_present_joint_voltages(&joint_voltages)) {
