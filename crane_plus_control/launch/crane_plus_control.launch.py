@@ -52,14 +52,20 @@ def generate_launch_description():
       shell=True
     )
 
-    crane_plus_arm_controller = ExecuteProcess(
-      cmd=['ros2', 'control', 'load_start_controller', 'crane_plus_arm_controller'],
-      output='screen',
-      shell=True
-    )
+    # crane_plus_arm_controller = ExecuteProcess(
+    #   cmd=['ros2', 'control', 'load_start_controller', 'crane_plus_arm_controller'],
+    #   output='screen',
+    #   shell=True
+    # )
 
-    crane_plus_gripper_controller = ExecuteProcess(
-      cmd=['ros2', 'control', 'load_start_controller', 'crane_plus_gripper_controller'],
+    # crane_plus_gripper_controller = ExecuteProcess(
+    #   cmd=['ros2', 'control', 'load_start_controller', 'crane_plus_gripper_controller'],
+    #   output='screen',
+    #   shell=True
+    # )
+
+    my_crane_plus_controller = ExecuteProcess(
+      cmd=['ros2', 'control', 'load_start_controller', 'my_crane_plus_controller'],
       output='screen',
       shell=True
     )
@@ -67,6 +73,7 @@ def generate_launch_description():
     return LaunchDescription([
       controller_manager,
       joint_state_controller,
-      crane_plus_arm_controller,
-      crane_plus_gripper_controller
+      # crane_plus_arm_controller,
+      # crane_plus_gripper_controller,
+      my_crane_plus_controller
     ])

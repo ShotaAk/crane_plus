@@ -8,6 +8,8 @@ controller_manager:
       type: joint_trajectory_controller/JointTrajectoryController
     joint_state_controller:
       type: joint_state_controller/JointStateController
+    my_crane_plus_controller:
+      type: my_controller/MyController
 
 crane_plus_arm_controller:
   ros__parameters:
@@ -20,4 +22,13 @@ crane_plus_arm_controller:
 crane_plus_gripper_controller:
   ros__parameters:
     joints:
+      - crane_plus_joint_hand
+
+my_crane_plus_controller:
+  ros__parameters:
+    joints:
+      - crane_plus_joint1
+      - crane_plus_joint2
+      - crane_plus_joint3
+      - crane_plus_joint4
       - crane_plus_joint_hand
