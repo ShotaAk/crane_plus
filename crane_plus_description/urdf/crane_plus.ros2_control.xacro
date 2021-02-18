@@ -1,6 +1,10 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
+  <xacro:property name="M_PI" value="3.14159"/>
+  <xacro:property name="TO_RADIAN" value="${M_PI / 180.0}"/>
+  <xacro:property name="X7_SERVO_HOME" value="${TO_RADIAN * 180.0}"/>
+
   <xacro:macro name="crane_plus_ros2_control_settings"
     params="name
             name_joint_1
@@ -93,5 +97,34 @@
       </joint>
 
     </ros2_control>
+
+    <ros2_control name="crane_x7" type="system">
+      <hardware>
+        <plugin>crane_x7_hardware/CraneX7Hardware</plugin>
+        <param name="port_name">/dev/ttyUSB1</param>
+        <param name="baudrate">3000000</param>
+        <param name="timeout_seconds">5.0</param>
+      </hardware>
+
+      <joint name="crane_x7_joint1">
+        <command_interface name="position">
+          <param name="min">"${90.0 * TO_RADIAN - X7_SERVO_HOME}"</param>
+          <param name="max">"${270.0 * TO_RADIAN - X7_SERVO_HOME}"</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <param name="dxl_id">2</param>
+      </joint>
+
+      <!-- <joint name="crane_x7_joint2">
+        <command_interface name="position">
+          <param name="min">-1.57</param>
+          <param name="max">1.57</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <param name="dxl_id">3</param>
+      </joint> -->
+
+    </ros2_control>
+
   </xacro:macro>
 </robot>
