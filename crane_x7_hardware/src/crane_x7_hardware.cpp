@@ -1,4 +1,4 @@
-// Copyright 2021 RT Corporation
+// Copyright 2021 RT Corporation, ShotaAk
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,20 +18,20 @@
 #include <string>
 #include <vector>
 
-#include "crane_plus_control/crane_plus_hardware.hpp"
+#include "crane_x7_hardware/crane_x7_hardware.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 
 
-namespace crane_plus_control
+namespace crane_x7_hardware
 {
 
-CranePlusHardware::~CranePlusHardware()
+CraneX7Hardware::~CraneX7Hardware()
 {
   driver_->torque_enable(false);
   driver_->close_port();
 }
 
-return_type CranePlusHardware::configure(
+return_type CraneX7Hardware::configure(
   const hardware_interface::HardwareInfo & info)
 {
   if (configure_default(info) != return_type::OK) {
@@ -50,7 +50,7 @@ return_type CranePlusHardware::configure(
       dxl_id_list.push_back(std::stoi(joint.parameters["dxl_id"]));
     } else {
       RCLCPP_ERROR(
-        rclcpp::get_logger("CranePlusHardware"),
+        rclcpp::get_logger("CraneX7Hardware"),
         "Joint '%s' does not have 'dxl_id' parameter.",
         joint.name.c_str());
       return return_type::ERROR;
@@ -58,51 +58,37 @@ return_type CranePlusHardware::configure(
   }
 
   hw_position_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_torque_limit_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_position_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_velocity_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_load_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_voltage_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_temperature_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
 
-  // Open a crane_plus_driver
-  driver_ = std::make_shared<CranePlusDriver>(port_name, baudrate, dxl_id_list);
+  // Open a crane_x7_driver
+  driver_ = std::make_shared<CraneX7Driver>(port_name, baudrate, dxl_id_list);
   if (!driver_->open_port()) {
     RCLCPP_ERROR(
-      rclcpp::get_logger("CranePlusHardware"), driver_->get_last_error_log());
+      rclcpp::get_logger("CraneX7Hardware"), driver_->get_last_error_log());
     return return_type::ERROR;
   }
   if (!driver_->torque_enable(false)) {
     RCLCPP_ERROR(
-      rclcpp::get_logger("CranePlusHardware"), driver_->get_last_error_log());
+      rclcpp::get_logger("CraneX7Hardware"), driver_->get_last_error_log());
     return return_type::ERROR;
   }
 
-  // Verify that the interface required by CranePlusHardware is set in the URDF.
+  // Verify that the interface required by CraneX7Hardware is set in the URDF.
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
-    if (joint.command_interfaces.size() != 2) {
+    if (joint.command_interfaces.size() != 1) {
       RCLCPP_ERROR(
-        rclcpp::get_logger("CranePlusHardware"),
-        "Joint '%s' has %d command interfaces found. 2 expected.",
+        rclcpp::get_logger("CraneX7Hardware"),
+        "Joint '%s' has %d command interfaces found. 1 expected.",
         joint.name.c_str(), joint.command_interfaces.size());
       return return_type::ERROR;
     }
 
     if (joint.command_interfaces[0].name != hardware_interface::HW_IF_POSITION) {
       RCLCPP_ERROR(
-        rclcpp::get_logger("CranePlusHardware"),
+        rclcpp::get_logger("CraneX7Hardware"),
         "Joint '%s' have %s command interfaces found. '%s' expected.",
         joint.name.c_str(), joint.command_interfaces[0].name.c_str(),
         hardware_interface::HW_IF_POSITION);
-      return return_type::ERROR;
-    }
-
-    if (joint.command_interfaces[1].name != "torque_limit") {
-      RCLCPP_ERROR(
-        rclcpp::get_logger("CranePlusHardware"),
-        "Joint '%s' have %s command interfaces found. '%s' expected.",
-        joint.name.c_str(), joint.command_interfaces[1].name.c_str(),
-        "torque_limit");
       return return_type::ERROR;
     }
   }
@@ -112,7 +98,7 @@ return_type CranePlusHardware::configure(
 }
 
 std::vector<hardware_interface::StateInterface>
-CranePlusHardware::export_state_interfaces()
+CraneX7Hardware::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
   for (uint i = 0; i < info_.joints.size(); i++) {
@@ -121,35 +107,13 @@ CranePlusHardware::export_state_interfaces()
         info_.joints[i].name, hardware_interface::HW_IF_POSITION,
         &hw_position_states_[i])
     );
-
-    state_interfaces.emplace_back(
-      hardware_interface::StateInterface(
-        info_.joints[i].name, hardware_interface::HW_IF_VELOCITY,
-        &hw_velocity_states_[i])
-    );
-
-    state_interfaces.emplace_back(
-      hardware_interface::StateInterface(
-        info_.joints[i].name, "load",
-        &hw_load_states_[i])
-    );
-    state_interfaces.emplace_back(
-      hardware_interface::StateInterface(
-        info_.joints[i].name, "voltage",
-        &hw_voltage_states_[i])
-    );
-    state_interfaces.emplace_back(
-      hardware_interface::StateInterface(
-        info_.joints[i].name, "temperature",
-        &hw_temperature_states_[i])
-    );
   }
 
   return state_interfaces;
 }
 
 std::vector<hardware_interface::CommandInterface>
-CranePlusHardware::export_command_interfaces()
+CraneX7Hardware::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
   for (uint i = 0; i < info_.joints.size(); i++) {
@@ -158,22 +122,16 @@ CranePlusHardware::export_command_interfaces()
         info_.joints[i].name, hardware_interface::HW_IF_POSITION,
         &hw_position_commands_[i])
     );
-
-    command_interfaces.emplace_back(
-      hardware_interface::CommandInterface(
-        info_.joints[i].name, "torque_limit",
-        &hw_torque_limit_commands_[i])
-    );
   }
 
   return command_interfaces;
 }
 
-return_type CranePlusHardware::start()
+return_type CraneX7Hardware::start()
 {
-  if (!driver_->torque_enable(false)) {
+  if (!driver_->torque_enable(true)) {
     RCLCPP_ERROR(
-      rclcpp::get_logger("CranePlusHardware"),
+      rclcpp::get_logger("CraneX7Hardware"),
       driver_->get_last_error_log());
     return return_type::ERROR;
   }
@@ -185,34 +143,30 @@ return_type CranePlusHardware::start()
   for (uint i = 0; i < hw_position_commands_.size(); i++) {
     hw_position_commands_[i] = hw_position_states_[i];
   }
-  // Set maximum torque limit to joints
-  for (uint i = 0; i < hw_torque_limit_commands_.size(); i++) {
-    hw_torque_limit_commands_[i] = 100;
-  }
 
   status_ = hardware_interface::status::STARTED;
   return return_type::OK;
 }
 
-return_type CranePlusHardware::stop()
+return_type CraneX7Hardware::stop()
 {
   driver_->torque_enable(false);
   status_ = hardware_interface::status::STOPPED;
   return return_type::OK;
 }
 
-return_type CranePlusHardware::read()
+return_type CraneX7Hardware::read()
 {
   if (communication_timeout()) {
     RCLCPP_ERROR(
-      rclcpp::get_logger("CranePlusHardware"), "Communication timeout!");
+      rclcpp::get_logger("CraneX7Hardware"), "Communication timeout!");
     return return_type::ERROR;
   }
 
   std::vector<double> joint_positions;
   if (!driver_->read_present_joint_positions(&joint_positions)) {
     RCLCPP_ERROR(
-      rclcpp::get_logger("CranePlusHardware"),
+      rclcpp::get_logger("CraneX7Hardware"),
       driver_->get_last_error_log());
     return return_type::ERROR;
   } else {
@@ -221,59 +175,21 @@ return_type CranePlusHardware::read()
     }
   }
 
-  // Disable read joint speeds, loads, voltages and temperatures
-  // to avoid a decrease of the communication rate.
-
-  // std::vector<double> joint_speeds;
-  // if (driver_->read_present_joint_speeds(&joint_speeds)) {
-  //   for (uint i = 0; i < hw_velocity_states_.size(); ++i) {
-  //     hw_velocity_states_[i] = joint_speeds[i];
-  //   }
-  // }
-
-  // std::vector<double> joint_loads;
-  // if (driver_->read_present_joint_loads(&joint_loads)) {
-  //   for (uint i = 0; i < hw_load_states_.size(); ++i) {
-  //     hw_load_states_[i] = joint_loads[i];
-  //   }
-  // }
-
-  // std::vector<double> joint_voltages;
-  // if (driver_->read_present_joint_voltages(&joint_voltages)) {
-  //   for (uint i = 0; i < hw_voltage_states_.size(); ++i) {
-  //     hw_voltage_states_[i] = joint_voltages[i];
-  //   }
-  // }
-
-  // std::vector<double> joint_temperatures;
-  // if (driver_->read_present_joint_temperatures(&joint_temperatures)) {
-  //   for (uint i = 0; i < hw_temperature_states_.size(); ++i) {
-  //     hw_temperature_states_[i] = joint_temperatures[i];
-  //   }
-  // }
-
   prev_comm_timestamp_ = rclcpp::Clock().now();
   return return_type::OK;
 }
 
-return_type CranePlusHardware::write()
+return_type CraneX7Hardware::write()
 {
   if (communication_timeout()) {
     RCLCPP_ERROR(
-      rclcpp::get_logger("CranePlusHardware"), "Communication timeout!");
+      rclcpp::get_logger("CraneX7Hardware"), "Communication timeout!");
     return return_type::ERROR;
   }
 
   if (!driver_->write_goal_joint_positions(hw_position_commands_)) {
     RCLCPP_ERROR(
-      rclcpp::get_logger("CranePlusHardware"),
-      driver_->get_last_error_log());
-    return return_type::ERROR;
-  }
-
-  if (!driver_->write_torque_limits(hw_torque_limit_commands_)) {
-    RCLCPP_ERROR(
-      rclcpp::get_logger("CranePlusHardware"),
+      rclcpp::get_logger("CraneX7Hardware"),
       driver_->get_last_error_log());
     return return_type::ERROR;
   }
@@ -282,7 +198,7 @@ return_type CranePlusHardware::write()
   return return_type::OK;
 }
 
-bool CranePlusHardware::communication_timeout()
+bool CraneX7Hardware::communication_timeout()
 {
   if (rclcpp::Clock().now().seconds() - prev_comm_timestamp_.seconds() >= timeout_seconds_) {
     return true;
@@ -291,11 +207,11 @@ bool CranePlusHardware::communication_timeout()
   }
 }
 
-}  // namespace crane_plus_control
+}  // namespace crane_x7_hardware
 
 #include "pluginlib/class_list_macros.hpp"
 
 PLUGINLIB_EXPORT_CLASS(
-  crane_plus_control::CranePlusHardware,
+  crane_x7_hardware::CraneX7Hardware,
   hardware_interface::SystemInterface
 )

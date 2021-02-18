@@ -1,0 +1,9 @@
+<library path="master_slave_controller">
+  <class name="master_slave_controller/MasterSlaveController"
+    type="master_slave_controller::MasterSlaveController"
+    base_class_type="controller_interface::ControllerInterface">
+  <description>
+    Master slave controller for CRANE+V2 and CRANE-X7.
+  </description>
+  </class>
+</library>

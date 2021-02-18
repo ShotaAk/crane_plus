@@ -37,6 +37,7 @@ constexpr double TO_VOLTAGE = 0.1;
 constexpr uint16_t ADDR_TORQUE_ENABLE = 24;
 constexpr uint16_t ADDR_GOAL_POSITION = 30;
 constexpr uint16_t ADDR_MOVING_SPEED = 32;
+constexpr uint16_t ADDR_TORQUE_LIMIT = 34;
 constexpr uint16_t ADDR_PRESENT_POSITION = 36;
 constexpr uint16_t ADDR_PRESENT_SPEED = 38;
 constexpr uint16_t ADDR_PRESENT_LOAD = 40;
@@ -167,6 +168,33 @@ bool CranePlusDriver::write_moving_speed_rpm_all(const double speed_rpm)
 
   for (auto dxl_id : id_list_) {
     if (!write_moving_speed_rpm(dxl_id, speed_rpm)) {
+      retval = false;
+    }
+  }
+
+  return retval;
+}
+
+bool CranePlusDriver::write_torque_limits(const std::vector<double> & torque_limits)
+{
+  if (torque_limits.size() != id_list_.size()) {
+    last_error_log_ = std::string(__func__) + ": vectors size does not match: " +
+      " torque_limits:" + std::to_string(torque_limits.size()) +
+      ", id_list:" + std::to_string(id_list_.size());
+    return false;
+  }
+
+  bool retval = true;
+
+  for (size_t i = 0; i < torque_limits.size(); i++) {
+    uint8_t dxl_error = 0;
+    uint16_t dxl_torque_limit = torque_limits[i] * 1.024;  // 1024 = 100 %
+    auto dxl_id = id_list_[i];
+    int dxl_result = dxl_packet_handler_->write2ByteTxRx(
+      dxl_port_handler_.get(),
+      dxl_id, ADDR_TORQUE_LIMIT, dxl_torque_limit, &dxl_error);
+
+    if (!parse_dxl_error(std::string(__func__), dxl_id, dxl_result, dxl_error)) {
       retval = false;
     }
   }

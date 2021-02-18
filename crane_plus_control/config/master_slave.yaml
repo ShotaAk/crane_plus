@@ -1,0 +1,29 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+
+    crane_master_slave_controller:
+      type: master_slave_controller/MasterSlaveController
+    joint_state_controller:
+      type: joint_state_controller/JointStateController
+
+crane_master_slave_controller:
+  ros__parameters:
+    master_joints:
+      - crane_plus_joint1
+      - crane_plus_joint2
+      - crane_plus_joint3
+      - crane_plus_joint4
+      - crane_plus_joint_hand
+    slave_joints:
+      - crane_x7_joint1
+      - crane_x7_joint2
+      - crane_x7_joint4
+      - crane_x7_joint6
+      - crane_x7_joint_hand
+    invert_inputs:
+      - false
+      - true
+      - false
+      - false
+      - true
