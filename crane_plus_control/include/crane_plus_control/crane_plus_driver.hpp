@@ -34,6 +34,7 @@ public:
   bool write_goal_joint_positions(const std::vector<double> & goal_positions);
   bool write_moving_speed_rpm(const uint8_t dxl_id, const double speed_rpm);
   bool write_moving_speed_rpm_all(const double speed_rpm);
+  bool write_torque_limits(const std::vector<double> & torque_limits);
   bool read_present_joint_positions(std::vector<double> * joint_positions);
   bool read_present_joint_speeds(std::vector<double> * joint_speeds);
   bool read_present_joint_loads(std::vector<double> * joint_loads);

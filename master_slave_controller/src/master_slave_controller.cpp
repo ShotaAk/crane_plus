@@ -71,9 +71,12 @@ MasterSlaveController::command_interface_configuration() const
 {
   controller_interface::InterfaceConfiguration conf;
   conf.type = controller_interface::interface_configuration_type::INDIVIDUAL;
-  conf.names.reserve(master_joint_names_.size() + slave_joint_names_.size());
+  conf.names.reserve(2 * master_joint_names_.size() + slave_joint_names_.size());
   for (const auto & joint_name  : master_joint_names_) {
     conf.names.push_back(joint_name + "/" + hardware_interface::HW_IF_POSITION);
+  }
+  for (const auto & joint_name  : master_joint_names_) {
+    conf.names.push_back(joint_name + "/torque_limit");
   }
   for (const auto & joint_name  : slave_joint_names_) {
     conf.names.push_back(joint_name + "/" + hardware_interface::HW_IF_POSITION);
@@ -133,6 +136,16 @@ CallbackReturn MasterSlaveController::on_activate(
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
   }
   if (!get_ordered_interfaces(
+      command_interfaces_, master_joint_names_, "torque_limit",
+      master_joint_torque_limit_command_interface_))
+  {
+    RCLCPP_ERROR(
+      node_->get_logger(),
+      "Expected %u torque_limit command interfaces of master joints, got %u",
+      master_joint_names_.size(), master_joint_torque_limit_command_interface_.size());
+    return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
+  }
+  if (!get_ordered_interfaces(
       state_interfaces_, master_joint_names_, hardware_interface::HW_IF_POSITION,
       master_joint_position_state_interface_))
   {
@@ -171,6 +184,7 @@ CallbackReturn MasterSlaveController::on_deactivate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
   master_joint_position_command_interface_.clear();
+  master_joint_torque_limit_command_interface_.clear();
   master_joint_position_state_interface_.clear();
   slave_joint_position_command_interface_.clear();
   slave_joint_position_state_interface_.clear();
@@ -193,6 +207,10 @@ controller_interface::return_type MasterSlaveController::update()
   }
 
   for (auto index = 0ul; index < master_joint_num; ++index) {
+    // マスターのトルクOFF
+    master_joint_torque_limit_command_interface_[index].get().set_value(0.0);
+
+    // マスターの現在角度をスレーブの目標角度にセットする
     auto master_pos = master_joint_position_state_interface_[index].get().get_value();
     slave_joint_position_command_interface_[index].get().set_value(master_pos);
   }

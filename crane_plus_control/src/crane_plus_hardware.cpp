@@ -58,6 +58,7 @@ return_type CranePlusHardware::configure(
   }
 
   hw_position_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  hw_torque_limit_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_position_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_velocity_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_load_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
@@ -79,10 +80,10 @@ return_type CranePlusHardware::configure(
 
   // Verify that the interface required by CranePlusHardware is set in the URDF.
   for (const hardware_interface::ComponentInfo & joint : info_.joints) {
-    if (joint.command_interfaces.size() != 1) {
+    if (joint.command_interfaces.size() != 2) {
       RCLCPP_ERROR(
         rclcpp::get_logger("CranePlusHardware"),
-        "Joint '%s' has %d command interfaces found. 1 expected.",
+        "Joint '%s' has %d command interfaces found. 2 expected.",
         joint.name.c_str(), joint.command_interfaces.size());
       return return_type::ERROR;
     }
@@ -93,6 +94,15 @@ return_type CranePlusHardware::configure(
         "Joint '%s' have %s command interfaces found. '%s' expected.",
         joint.name.c_str(), joint.command_interfaces[0].name.c_str(),
         hardware_interface::HW_IF_POSITION);
+      return return_type::ERROR;
+    }
+
+    if (joint.command_interfaces[1].name != "torque_limit") {
+      RCLCPP_ERROR(
+        rclcpp::get_logger("CranePlusHardware"),
+        "Joint '%s' have %s command interfaces found. '%s' expected.",
+        joint.name.c_str(), joint.command_interfaces[1].name.c_str(),
+        "torque_limit");
       return return_type::ERROR;
     }
   }
@@ -148,6 +158,12 @@ CranePlusHardware::export_command_interfaces()
         info_.joints[i].name, hardware_interface::HW_IF_POSITION,
         &hw_position_commands_[i])
     );
+
+    command_interfaces.emplace_back(
+      hardware_interface::CommandInterface(
+        info_.joints[i].name, "torque_limit",
+        &hw_torque_limit_commands_[i])
+    );
   }
 
   return command_interfaces;
@@ -168,6 +184,10 @@ return_type CranePlusHardware::start()
   read();
   for (uint i = 0; i < hw_position_commands_.size(); i++) {
     hw_position_commands_[i] = hw_position_states_[i];
+  }
+  // Set maximum torque limit to joints
+  for (uint i = 0; i < hw_torque_limit_commands_.size(); i++) {
+    hw_torque_limit_commands_[i] = 100;
   }
 
   status_ = hardware_interface::status::STARTED;
@@ -245,6 +265,13 @@ return_type CranePlusHardware::write()
   }
 
   if (!driver_->write_goal_joint_positions(hw_position_commands_)) {
+    RCLCPP_ERROR(
+      rclcpp::get_logger("CranePlusHardware"),
+      driver_->get_last_error_log());
+    return return_type::ERROR;
+  }
+
+  if (!driver_->write_torque_limits(hw_torque_limit_commands_)) {
     RCLCPP_ERROR(
       rclcpp::get_logger("CranePlusHardware"),
       driver_->get_last_error_log());

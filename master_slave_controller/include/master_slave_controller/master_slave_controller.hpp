@@ -68,6 +68,8 @@ protected:
   master_joint_position_command_interface_;
   std::vector<std::reference_wrapper<hardware_interface::LoanedCommandInterface>>
   slave_joint_position_command_interface_;
+  std::vector<std::reference_wrapper<hardware_interface::LoanedCommandInterface>>
+  master_joint_torque_limit_command_interface_;
   std::vector<std::reference_wrapper<hardware_interface::LoanedStateInterface>>
   master_joint_position_state_interface_;
   std::vector<std::reference_wrapper<hardware_interface::LoanedStateInterface>>
