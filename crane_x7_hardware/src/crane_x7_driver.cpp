@@ -192,7 +192,7 @@ bool CraneX7Driver::parse_dxl_error(
   return retval;
 }
 
-double CraneX7Driver::dxl_pos_to_radian(const uint32_t position)
+double CraneX7Driver::dxl_pos_to_radian(const int position)
 {
   return (position - DXL_HOME_POSITION) * TO_RADIANS;
 }

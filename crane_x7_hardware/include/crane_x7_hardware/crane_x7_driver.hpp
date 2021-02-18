@@ -46,7 +46,7 @@ private:
   bool parse_dxl_error(
     const std::string func_name, const uint8_t dxl_id,
     const int dxl_comm_result, const uint8_t dxl_packet_error);
-  double dxl_pos_to_radian(const uint32_t position);
+  double dxl_pos_to_radian(const int position);
   uint32_t radian_to_dxl_pos(const double position);
 };
 
