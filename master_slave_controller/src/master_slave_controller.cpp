@@ -43,6 +43,7 @@ MasterSlaveController::init(const std::string & controller_name)
   // with the lifecycle node being initialized, we can declare parameters
   node_->declare_parameter<std::vector<std::string>>("master_joints", master_joint_names_);
   node_->declare_parameter<std::vector<std::string>>("slave_joints", slave_joint_names_);
+  node_->declare_parameter<std::vector<bool>>("invert_inputs", invert_inputs_);
 
   return controller_interface::return_type::SUCCESS;
 }
@@ -59,6 +60,12 @@ CallbackReturn MasterSlaveController::on_configure(
   slave_joint_names_ = node_->get_parameter("slave_joints").as_string_array();
   if (slave_joint_names_.empty()) {
     RCLCPP_ERROR(get_node()->get_logger(), "'slave_joints' parameter was empty");
+    return CallbackReturn::ERROR;
+  }
+
+  invert_inputs_ = node_->get_parameter("invert_inputs").as_bool_array();
+  if (invert_inputs_.empty()) {
+    RCLCPP_ERROR(get_node()->get_logger(), "'invert_inputs' parameter was empty");
     return CallbackReturn::ERROR;
   }
 
@@ -212,6 +219,10 @@ controller_interface::return_type MasterSlaveController::update()
 
     // マスターの現在角度をスレーブの目標角度にセットする
     auto master_pos = master_joint_position_state_interface_[index].get().get_value();
+
+    if(invert_inputs_[index]){
+      master_pos *= -1.0;
+    }
     slave_joint_position_command_interface_[index].get().set_value(master_pos);
   }
   return controller_interface::return_type::SUCCESS;

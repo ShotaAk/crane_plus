@@ -11,8 +11,10 @@ crane_master_slave_controller:
   ros__parameters:
     master_joints:
       - crane_plus_joint1
-      # - crane_plus_joint2
-      # - crane_plus_joint3
-      # - crane_plus_joint4
+      - crane_plus_joint2
     slave_joints:
       - crane_x7_joint1
+      - crane_x7_joint2
+    invert_inputs:
+      - false
+      - true

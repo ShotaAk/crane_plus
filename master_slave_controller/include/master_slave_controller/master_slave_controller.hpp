@@ -61,6 +61,7 @@ public:
 protected:
   std::vector<std::string> master_joint_names_;
   std::vector<std::string> slave_joint_names_;
+  std::vector<bool> invert_inputs_;
 
   // For convenience, we have ordered the interfaces so i-th position matches i-th index
   // in joint_names_
