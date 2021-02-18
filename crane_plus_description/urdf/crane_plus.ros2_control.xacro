@@ -162,6 +162,42 @@
         <param name="dxl_id">5</param>
       </joint>
 
+      <joint name="crane_x7_joint5">
+        <command_interface name="position">
+          <param name="min">"${90.0 * TO_RADIAN - X7_SERVO_HOME}"</param>
+          <param name="max">"${270.0 * TO_RADIAN - X7_SERVO_HOME}"</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <param name="dxl_id">6</param>
+      </joint>
+
+      <joint name="crane_x7_joint6">
+        <command_interface name="position">
+          <param name="min">"${90.0 * TO_RADIAN - X7_SERVO_HOME}"</param>
+          <param name="max">"${270.0 * TO_RADIAN - X7_SERVO_HOME}"</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <param name="dxl_id">7</param>
+      </joint>
+
+      <joint name="crane_x7_joint7">
+        <command_interface name="position">
+          <param name="min">"${90.0 * TO_RADIAN - X7_SERVO_HOME}"</param>
+          <param name="max">"${270.0 * TO_RADIAN - X7_SERVO_HOME}"</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <param name="dxl_id">8</param>
+      </joint>
+
+      <joint name="crane_x7_joint_hand">
+        <command_interface name="position">
+          <param name="min">"${0.0 * TO_RADIAN - X7_SERVO_HOME}"</param>
+          <param name="max">"${90.0 * TO_RADIAN - X7_SERVO_HOME}"</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <param name="dxl_id">9</param>
+      </joint>
+
     </ros2_control>
 
   </xacro:macro>
