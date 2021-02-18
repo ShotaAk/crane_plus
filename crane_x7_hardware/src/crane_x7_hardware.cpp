@@ -129,7 +129,7 @@ CraneX7Hardware::export_command_interfaces()
 
 return_type CraneX7Hardware::start()
 {
-  if (!driver_->torque_enable(false)) {
+  if (!driver_->torque_enable(true)) {
     RCLCPP_ERROR(
       rclcpp::get_logger("CraneX7Hardware"),
       driver_->get_last_error_log());
